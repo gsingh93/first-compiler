@@ -1,0 +1,38 @@
+     1                                  global start
+     2                                      extern  GetStdHandle@4
+     3                                      extern  WriteFile@20
+     4                                      extern  ExitProcess@4
+     5                                  	import WriteFile@20 kernel32.dll
+     6                                  	import GetStdHandle@4 kernel32.dll
+     7                                  	import ExitProcess@4	kernel32.dll
+     8                                  
+     9                                      section .code
+    10                                  ..start:
+    11                                      ; DWORD  bytes;    
+    12 00000000 6689E5                      mov     ebp, esp
+    13 00000003 6681EC04000000              sub     esp, 4
+    14                                  
+    15                                      ; hStdOut = GetstdHandle( STD_OUTPUT_HANDLE)
+    16 0000000A 68F5FF                      push    -11
+    17 0000000D E8(0000)                    call    GetStdHandle@4
+    18 00000010 6689C3                      mov     ebx, eax    
+    19                                  
+    20                                      ; WriteFile( hstdOut, message, length(message), &bytes, 0);
+    21 00000013 680000                      push    0
+    22 00000016 67668D45FC                  lea     eax, [ebp-4]
+    23 0000001B 6650                        push    eax
+    24 0000001D 680D00                      push    (messageend - message)
+    25 00000020 68[2F00]                    push    message
+    26 00000023 6653                        push    ebx
+    27 00000025 E8(0000)                    call    WriteFile@20
+    28                                  
+    29                                      ; ExitProcess(0)
+    30 00000028 680000                      push    0
+    31 0000002B E8(0000)                    call    ExitProcess@4
+    32                                  
+    33                                      ; never here
+    34 0000002E F4                          hlt
+    35                                  message:
+    36 0000002F 48656C6C6F2C20576F-         db      'Hello, World', 10
+    37 00000038 726C640A           
+    38                                  messageend:

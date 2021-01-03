@@ -1,0 +1,101 @@
+[list -]
+%include 'win32n.inc'
+[list +]
+
+section .bss use32
+section .data use32
+section .code use32
+	cpu 386
+
+extern WriteFile
+extern GetStdHandle
+extern ExitProcess
+import WriteFile kernel32.dll
+import GetStdHandle kernel32.dll
+import ExitProcess kernel32.dll
+
+section .code
+
+..start:
+push	STD_OUTPUT_HANDLE
+call	[GetStdHandle]			;Get stdout
+mov	 [stdout_handle], eax	  ;Save the handle
+
+mov		eax, 0
+mov		[A], eax
+mov		eax, 4
+mov		[B], eax
+mov		eax, 0
+mov		[X], eax
+L0:
+mov		eax, [B]
+push 	eax
+mov		eax, [A]
+xor		ecx, ecx
+pop 	ebx
+cmp 	eax, ebx
+setle 	cl
+cmp 	ecx, 0
+jz		L1
+mov		eax, [X]
+push	eax
+mov		eax, 1
+pop		ebx
+add		eax, ebx
+mov		[X], eax
+mov		eax, [A]
+push	eax
+mov		eax, 1
+pop		ebx
+add		eax, ebx
+mov		[A], eax
+jmp		L0
+L1:
+mov		eax, [X]
+push 	eax
+mov		eax, 5
+xor		ecx, ecx
+pop		ebx
+cmp 	eax, ebx
+sete 	cl
+cmp 	ecx, 0
+jz		L2
+mov		eax, 0
+mov		[X], eax
+L2:
+mov		eax, [X]
+push 	eax
+mov		eax, 6
+xor		ecx, ecx
+pop		ebx
+cmp 	eax, ebx
+sete 	cl
+cmp 	ecx, 0
+jz		L3
+mov		eax, 1
+mov		[X], eax
+L3:
+add		dword [X], 48
+
+;Write a message to stdout
+push	dword 0
+push	dword 0
+push	dword textlen
+push	dword X
+push	dword [stdout_handle]
+call	[WriteFile]
+jmp		exit
+
+exit:
+push	dword 0					;Point at error code
+call	[ExitProcess]
+jmp		exit					;Should never reach here
+
+section .data
+
+stdout_handle	dd	0
+string			dd	0
+textlen			equ	$ - string
+A			dd 0
+X			dd 0
+B			dd 0

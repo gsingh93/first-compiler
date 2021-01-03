@@ -1,0 +1,100 @@
+ 15508                                  [list -]
+ 15509                                  
+ 15510                                  section .bss use32
+ 15511                                  section .data use32
+ 15512                                  section .code use32
+ 15513                                  	cpu 386
+ 15514                                  
+ 15515                                  extern WriteFile
+ 15516                                  extern GetStdHandle
+ 15517                                  extern ExitProcess
+ 15518                                  import WriteFile kernel32.dll
+ 15519                                  import GetStdHandle kernel32.dll
+ 15520                                  import ExitProcess kernel32.dll
+ 15521                                  
+ 15522                                  section .code
+ 15523                                  
+ 15524                                  ..start:
+ 15525 00000000 68F5FFFFFF              push	STD_OUTPUT_HANDLE
+ 15526 00000005 FF15[00000000]          call	[GetStdHandle]			;Get stdout
+ 15527 0000000B A3[00000000]            mov	 [stdout_handle], eax	  ;Save the handle
+ 15528                                  
+ 15529 00000010 B800000000              mov		eax, 0
+ 15530 00000015 A3[08000000]            mov		[A], eax
+ 15531 0000001A B804000000              mov		eax, 4
+ 15532 0000001F A3[10000000]            mov		[B], eax
+ 15533 00000024 B800000000              mov		eax, 0
+ 15534 00000029 A3[0C000000]            mov		[X], eax
+ 15535                                  L0:
+ 15536 0000002E A1[10000000]            mov		eax, [B]
+ 15537 00000033 50                      push 	eax
+ 15538 00000034 A1[08000000]            mov		eax, [A]
+ 15539 00000039 31C9                    xor		ecx, ecx
+ 15540 0000003B 5B                      pop 	ebx
+ 15541 0000003C 39D8                    cmp 	eax, ebx
+ 15542 0000003E 0F9EC1                  setle 	cl
+ 15543 00000041 81F900000000            cmp 	ecx, 0
+ 15544 00000047 742B                    jz		L1
+ 15545 00000049 A1[0C000000]            mov		eax, [X]
+ 15546 0000004E 50                      push	eax
+ 15547 0000004F B801000000              mov		eax, 1
+ 15548 00000054 5B                      pop		ebx
+ 15549 00000055 01D8                    add		eax, ebx
+ 15550 00000057 A3[0C000000]            mov		[X], eax
+ 15551 0000005C A1[08000000]            mov		eax, [A]
+ 15552 00000061 50                      push	eax
+ 15553 00000062 B801000000              mov		eax, 1
+ 15554 00000067 5B                      pop		ebx
+ 15555 00000068 01D8                    add		eax, ebx
+ 15556 0000006A A3[08000000]            mov		[A], eax
+ 15557 0000006F E9BAFFFFFF              jmp		L0
+ 15558                                  L1:
+ 15559 00000074 A1[0C000000]            mov		eax, [X]
+ 15560 00000079 50                      push 	eax
+ 15561 0000007A B805000000              mov		eax, 5
+ 15562 0000007F 31C9                    xor		ecx, ecx
+ 15563 00000081 5B                      pop		ebx
+ 15564 00000082 39D8                    cmp 	eax, ebx
+ 15565 00000084 0F94C1                  sete 	cl
+ 15566 00000087 81F900000000            cmp 	ecx, 0
+ 15567 0000008D 740A                    jz		L2
+ 15568 0000008F B800000000              mov		eax, 0
+ 15569 00000094 A3[0C000000]            mov		[X], eax
+ 15570                                  L2:
+ 15571 00000099 A1[0C000000]            mov		eax, [X]
+ 15572 0000009E 50                      push 	eax
+ 15573 0000009F B806000000              mov		eax, 6
+ 15574 000000A4 31C9                    xor		ecx, ecx
+ 15575 000000A6 5B                      pop		ebx
+ 15576 000000A7 39D8                    cmp 	eax, ebx
+ 15577 000000A9 0F94C1                  sete 	cl
+ 15578 000000AC 81F900000000            cmp 	ecx, 0
+ 15579 000000B2 740A                    jz		L3
+ 15580 000000B4 B801000000              mov		eax, 1
+ 15581 000000B9 A3[0C000000]            mov		[X], eax
+ 15582                                  L3:
+ 15583 000000BE 8105[0C000000]3000-     add		dword [X], 48
+ 15584 000000C6 0000               
+ 15585                                  
+ 15586                                  ;Write a message to stdout
+ 15587 000000C8 6800000000              push	dword 0
+ 15588 000000CD 6800000000              push	dword 0
+ 15589 000000D2 6804000000              push	dword textlen
+ 15590 000000D7 68[0C000000]            push	dword X
+ 15591 000000DC FF35[00000000]          push	dword [stdout_handle]
+ 15592 000000E2 FF15[00000000]          call	[WriteFile]
+ 15593 000000E8 E900000000              jmp		exit
+ 15594                                  
+ 15595                                  exit:
+ 15596 000000ED 6800000000              push	dword 0					;Point at error code
+ 15597 000000F2 FF15[00000000]          call	[ExitProcess]
+ 15598 000000F8 E9F0FFFFFF              jmp		exit					;Should never reach here
+ 15599                                  
+ 15600                                  section .data
+ 15601                                  
+ 15602 00000000 00000000                stdout_handle	dd	0
+ 15603 00000004 00000000                string			dd	0
+ 15604                                  textlen			equ	$ - string
+ 15605 00000008 00000000                A			dd 0
+ 15606 0000000C 00000000                X			dd 0
+ 15607 00000010 00000000                B			dd 0
